@@ -1,0 +1,23 @@
+# Render Blueprint — free backend hosting (no credit card required).
+# Render builds the backend from its Dockerfile and runs it as a free web service.
+# Note: the free plan sleeps after ~15 min idle (cold start on next request) and
+# its filesystem is ephemeral (history/MP3s reset on redeploy or sleep).
+services:
+  - type: web
+    name: pdf-to-audio-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: STORAGE_DIR
+        value: /tmp/storage
+      # Free demo mode: emits short SILENT clips so the app works without Google
+      # billing. Real Gemini-TTS audio needs billing enabled (or swap to a free
+      # TTS engine like edge-tts). Set to 0 once you have real TTS configured.
+      - key: TTS_FAKE
+        value: "1"

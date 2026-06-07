@@ -33,6 +33,11 @@ export interface AuthUser {
   email: string;
 }
 
+// Base URL of the backend API. Empty in dev (Vite proxy handles /api); set to the
+// deployed backend URL (e.g. https://pdf-to-audio-api.onrender.com) at build time
+// via VITE_API_BASE for production.
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 const TOKEN_KEY = 'pdf2audio_token';
 
 export function getToken(): string | null {
@@ -51,7 +56,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const res = await fetch(path, { ...init, headers });
+  const res = await fetch(API_BASE + path, { ...init, headers });
   if (res.status === 401) {
     clearToken();
     throw new Error('Your session expired. Please sign in again.');
@@ -106,11 +111,11 @@ export async function listJobs(): Promise<JobState[]> {
 /** Token is appended so <audio> and download links authorize without headers. */
 export function audioUrl(id: string): string {
   const token = getToken();
-  return `/api/jobs/${id}/audio${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+  return `${API_BASE}/api/jobs/${id}/audio${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 }
 
 /** URL for a single page's audio (progressive playback). */
 export function segmentAudioUrl(id: string, index: number): string {
   const token = getToken();
-  return `/api/jobs/${id}/segments/${index}/audio${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+  return `${API_BASE}/api/jobs/${id}/segments/${index}/audio${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 }
